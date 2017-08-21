@@ -3,9 +3,7 @@ package com.example.wb.aidltest;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -64,9 +62,9 @@ public class BookManagerService extends Service{
     @Override
     public void onCreate() {
         super.onCreate();
-        mBookList.add(new Book("1","Amdroid"));
-        mBookList.add(new Book("2","IOS"));
-        handler.sendEmptyMessageDelayed(1,1000);
+        mBookList.add(new Book(1,"西游记"));
+        mBookList.add(new Book(2,"水浒传"));
+        new Thread(new ServiceWork()).start();
     }
 
     @Nullable
@@ -81,28 +79,33 @@ public class BookManagerService extends Service{
         super.onDestroy();
     }
 
-    Handler handler = new Handler(){
+    private class ServiceWork implements Runnable{
+
         @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what){
-                case 1:
-                    while (!mIsServiceDestroy.get()){
-                        Book book = new Book("3","水浒传");
-                        mBookList.add(book);
-                        for (int i=0;i<mBookListener.size();i++) {
-                            IOnNewBookArrviedListener listener = mBookListener.get(i);
-                            try {
-                                listener.addNewBookArrived(book);
-                            } catch (RemoteException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                    handler.sendEmptyMessageDelayed(1,1000);
-                    break;
-                default:
-                    super.handleMessage(msg);
+        public void run() {
+            while (!mIsServiceDestroy.get()){
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                int bookId = mBookList.size() + 1;
+                Book newBook = new Book(bookId,"new Book#" + bookId);
+                try {
+                    onNewBookArrived(newBook);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }
-    };
+    }
+
+    private void onNewBookArrived(Book newBook) throws RemoteException{
+        mBookList.add(newBook);
+        for (int i=0;i<mBookListener.size();i++){
+            IOnNewBookArrviedListener listener = mBookListener.get(i);
+            listener.addNewBookArrived(newBook);
+        }
+    }
+
 }

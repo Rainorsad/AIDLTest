@@ -51,11 +51,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private IOnNewBookArrviedListener mOnNewBookArrivedListener = new IOnNewBookArrviedListener() {
-        @Override
-        public IBinder asBinder() {
-            return null;
-        }
+    private IOnNewBookArrviedListener mOnNewBookArrivedListener = new IOnNewBookArrviedListener.Stub() {
 
         @Override
         public void addNewBookArrived(Book book) throws RemoteException {

@@ -16,16 +16,16 @@ public class Book implements Parcelable{
                 '}';
     }
 
-    private String name;
+    private int name;
     private String user;
 
-    public Book(String name, String user) {
+    public Book(int name, String user) {
         this.name = name;
         this.user = user;
     }
 
     protected Book(Parcel in) {
-        name = in.readString();
+        name = in.readInt();
         user = in.readString();
     }
 
@@ -48,7 +48,7 @@ public class Book implements Parcelable{
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(name);
+        dest.writeInt(name);
         dest.writeString(user);
     }
 }
