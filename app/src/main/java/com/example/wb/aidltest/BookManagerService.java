@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -21,6 +22,7 @@ public class BookManagerService extends Service{
     private static final String TAG = "BMS";
 
     private AtomicBoolean mIsServiceDestroy = new AtomicBoolean(false);
+    private RemoteCallbackList<IOnNewBookArrviedListener> mListenerList = new RemoteCallbackList<IOnNewBookArrviedListener>();
 
     private CopyOnWriteArrayList<Book> mBookList = new CopyOnWriteArrayList<Book>();
     private CopyOnWriteArrayList<IOnNewBookArrviedListener> mBookListener = new CopyOnWriteArrayList<IOnNewBookArrviedListener>();
@@ -39,22 +41,12 @@ public class BookManagerService extends Service{
 
         @Override
         public void registListener(IOnNewBookArrviedListener listener) throws RemoteException {
-            if (!mBookListener.contains(listener)){
-                mBookListener.add(listener);
-            }else {
-                Log.d("服务端","already exists");
-            }
-            Log.d("服务端","not found ,can not regist");
+            mListenerList.register(listener);
         }
 
         @Override
         public void unregistListener(IOnNewBookArrviedListener listener) throws RemoteException {
-            if (mBookListener.contains(listener)){
-                mBookListener.remove(listener);
-                Log.d("服务端","unregister listener succed");
-            }else {
-                Log.d("服务端","not found ,can not regist");
-            }
+            mListenerList.unregister(listener);
             Log.d("服务端","unregisterListener,current size :" + mBookListener.size());
         }
     };
@@ -102,10 +94,14 @@ public class BookManagerService extends Service{
 
     private void onNewBookArrived(Book newBook) throws RemoteException{
         mBookList.add(newBook);
-        for (int i=0;i<mBookListener.size();i++){
-            IOnNewBookArrviedListener listener = mBookListener.get(i);
-            listener.addNewBookArrived(newBook);
+        int N = mListenerList.beginBroadcast();
+        for (int i=0;i<N;i++){
+            IOnNewBookArrviedListener listener = mListenerList.getBroadcastItem(i);
+            if (listener != null){
+                listener.addNewBookArrived(newBook);
+            }
         }
+        mListenerList.finishBroadcast();
     }
 
 }

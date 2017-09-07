@@ -39,6 +39,10 @@ public class MainActivity extends AppCompatActivity {
                 mRemoteBookManager = manager;
                 List<Book> list = manager.getBookList();
                 Log.d("客户端",list.toString());
+                Book book = new Book(3,"水浒传");
+                manager.addBook(book);
+                List<Book> lists = manager.getBookList();
+                Log.d("客户端",lists.toString());
                 manager.registListener(mOnNewBookArrivedListener);
             } catch (RemoteException e) {
                 e.printStackTrace();
